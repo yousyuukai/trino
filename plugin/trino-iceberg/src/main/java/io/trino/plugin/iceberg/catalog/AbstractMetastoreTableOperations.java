@@ -55,6 +55,7 @@ import static io.trino.plugin.hive.HiveType.toHiveType;
 import static io.trino.plugin.hive.ViewReaderUtil.isHiveOrPrestoView;
 import static io.trino.plugin.hive.ViewReaderUtil.isPrestoView;
 import static io.trino.plugin.hive.metastore.PrincipalPrivileges.NO_PRIVILEGES;
+import static io.trino.plugin.iceberg.IcebergErrorCode.ICEBERG_COMMIT_ERROR;
 import static io.trino.plugin.iceberg.IcebergErrorCode.ICEBERG_INVALID_METADATA;
 import static io.trino.plugin.iceberg.IcebergUtil.getLocationProvider;
 import static io.trino.plugin.iceberg.IcebergUtil.isIcebergTable;
@@ -217,7 +218,7 @@ public abstract class AbstractMetastoreTableOperations
             catch (RuntimeException ex) {
                 e.addSuppressed(ex);
             }
-            throw e;
+            throw new TrinoException(ICEBERG_COMMIT_ERROR, "Failed to commit new table to the Iceberg Catalog", e);
         }
 
         PrincipalPrivileges privileges = owner.map(MetastoreUtil::buildInitialPrivilegeSet).orElse(NO_PRIVILEGES);
