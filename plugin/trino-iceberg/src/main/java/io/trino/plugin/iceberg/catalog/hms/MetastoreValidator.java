@@ -11,9 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.plugin.iceberg.catalog;
+package io.trino.plugin.iceberg.catalog.hms;
 
-public interface TrinoCatalogFactory
+import io.trino.plugin.hive.metastore.HiveMetastore;
+import io.trino.plugin.hive.metastore.cache.CachingHiveMetastore;
+
+import javax.inject.Inject;
+
+public class MetastoreValidator
 {
-    TrinoCatalog create();
+    @Inject
+    public MetastoreValidator(HiveMetastore metastore)
+    {
+        if (metastore instanceof CachingHiveMetastore) {
+            throw new RuntimeException("Hive metastore caching must not be enabled for Iceberg");
+        }
+    }
 }

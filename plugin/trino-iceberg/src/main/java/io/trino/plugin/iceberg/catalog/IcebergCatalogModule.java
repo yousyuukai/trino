@@ -18,20 +18,20 @@ import com.google.inject.Module;
 import com.google.inject.Scopes;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
 import io.trino.plugin.hive.metastore.HiveMetastore;
-import io.trino.plugin.hive.metastore.cache.CachingHiveMetastore;
 import io.trino.plugin.hive.metastore.cache.CachingHiveMetastoreModule;
 import io.trino.plugin.hive.metastore.cache.ForCachingHiveMetastore;
 import io.trino.plugin.iceberg.CatalogType;
 import io.trino.plugin.iceberg.IcebergConfig;
 import io.trino.plugin.iceberg.catalog.file.FileMetastoreTableOperationsProvider;
 import io.trino.plugin.iceberg.catalog.file.IcebergFileMetastoreCatalogModule;
+import io.trino.plugin.iceberg.catalog.glue.IcebergGlueCatalogModule;
 import io.trino.plugin.iceberg.catalog.hms.IcebergHiveMetastoreCatalogModule;
-
-import javax.inject.Inject;
+import io.trino.plugin.iceberg.catalog.hms.TrinoHiveCatalogFactory;
 
 import java.util.Optional;
 
 import static io.airlift.configuration.ConditionalModule.conditionalModule;
+import static io.trino.plugin.iceberg.CatalogType.GLUE;
 import static io.trino.plugin.iceberg.CatalogType.HIVE_METASTORE;
 import static io.trino.plugin.iceberg.CatalogType.TESTING_FILE_METASTORE;
 import static java.util.Objects.requireNonNull;
@@ -53,24 +53,12 @@ public class IcebergCatalogModule
             binder.bind(HiveMetastore.class).annotatedWith(ForCachingHiveMetastore.class).toInstance(metastore.get());
             install(new CachingHiveMetastoreModule());
             binder.bind(IcebergTableOperationsProvider.class).to(FileMetastoreTableOperationsProvider.class).in(Scopes.SINGLETON);
+            binder.bind(TrinoCatalogFactory.class).to(TrinoHiveCatalogFactory.class).in(Scopes.SINGLETON);
         }
         else {
             bindCatalogModule(HIVE_METASTORE, new IcebergHiveMetastoreCatalogModule());
             bindCatalogModule(TESTING_FILE_METASTORE, new IcebergFileMetastoreCatalogModule());
-            // TODO add support for Glue metastore
-        }
-
-        binder.bind(MetastoreValidator.class).asEagerSingleton();
-    }
-
-    public static class MetastoreValidator
-    {
-        @Inject
-        public MetastoreValidator(HiveMetastore metastore)
-        {
-            if (metastore instanceof CachingHiveMetastore) {
-                throw new RuntimeException("Hive metastore caching must not be enabled for Iceberg");
-            }
+            bindCatalogModule(GLUE, new IcebergGlueCatalogModule());
         }
     }
 

@@ -17,29 +17,32 @@ import com.google.common.collect.ImmutableMap;
 import io.trino.testing.QueryRunner;
 import org.testng.annotations.Test;
 
-import java.io.File;
-
 import static io.trino.plugin.iceberg.IcebergQueryRunner.createIcebergQueryRunner;
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-// Redundant over TestIcebergOrcConnectorTest, but exists to exercise BaseConnectorSmokeTest
-// Some features like materialized views may be supported by Iceberg only.
-public class TestIcebergConnectorSmokeTest
+/*
+ * TestIcebergGlueCatalogConnectorSmokeTest currently uses AWS Default Credential Provider Chain,
+ * See https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
+ * on ways to set your AWS credentials which will be needed to run this test.
+ */
+public class TestIcebergGlueCatalogConnectorSmokeTest
         extends BaseIcebergConnectorSmokeTest
 {
     @Override
     protected QueryRunner createQueryRunner()
             throws Exception
     {
-        return createIcebergQueryRunner(ImmutableMap.of(), ImmutableMap.of(), REQUIRED_TPCH_TABLES);
+        return createIcebergQueryRunner(
+                ImmutableMap.of(),
+                ImmutableMap.of("iceberg.catalog.type", "glue"),
+                REQUIRED_TPCH_TABLES);
     }
 
     @Test
     @Override
     public void testShowCreateTable()
     {
-        File tempDir = getDistributedQueryRunner().getCoordinator().getBaseDataDir().toFile();
         assertThat((String) computeScalar("SHOW CREATE TABLE region"))
                 .isEqualTo("" +
                         "CREATE TABLE iceberg.tpch.region (\n" +
@@ -48,8 +51,31 @@ public class TestIcebergConnectorSmokeTest
                         "   comment varchar\n" +
                         ")\n" +
                         "WITH (\n" +
-                        "   format = 'ORC',\n" +
-                        format("   location = '%s/iceberg_data/tpch/region'\n", tempDir) +
+                        "   format = 'ORC'\n" +
                         ")");
+    }
+
+    @Test
+    @Override
+    public void testView()
+    {
+        assertThatThrownBy(super::testView)
+                .hasStackTraceContaining("createView is not supported for Iceberg Glue catalogs");
+    }
+
+    @Test
+    @Override
+    public void testMaterializedView()
+    {
+        assertThatThrownBy(super::testMaterializedView)
+                .hasStackTraceContaining("createMaterializedView is not supported for Iceberg Glue catalogs");
+    }
+
+    @Test
+    @Override
+    public void testRenameSchema()
+    {
+        assertThatThrownBy(super::testRenameSchema)
+                .hasStackTraceContaining("renameNamespace is not supported for Iceberg Glue catalogs");
     }
 }

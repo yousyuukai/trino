@@ -11,26 +11,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.plugin.iceberg.catalog.file;
+package io.trino.plugin.iceberg.catalog.glue;
 
 import com.google.inject.Binder;
 import com.google.inject.Scopes;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
-import io.trino.plugin.hive.metastore.file.FileMetastoreModule;
+import io.trino.plugin.hive.metastore.glue.GlueHiveMetastoreConfig;
 import io.trino.plugin.iceberg.catalog.IcebergTableOperationsProvider;
 import io.trino.plugin.iceberg.catalog.TrinoCatalogFactory;
-import io.trino.plugin.iceberg.catalog.hms.MetastoreValidator;
-import io.trino.plugin.iceberg.catalog.hms.TrinoHiveCatalogFactory;
 
-public class IcebergFileMetastoreCatalogModule
+import static io.airlift.configuration.ConfigBinder.configBinder;
+import static org.weakref.jmx.guice.ExportBinder.newExporter;
+
+public class IcebergGlueCatalogModule
         extends AbstractConfigurationAwareModule
 {
     @Override
     protected void setup(Binder binder)
     {
-        install(new FileMetastoreModule());
-        binder.bind(IcebergTableOperationsProvider.class).to(FileMetastoreTableOperationsProvider.class).in(Scopes.SINGLETON);
-        binder.bind(TrinoCatalogFactory.class).to(TrinoHiveCatalogFactory.class).in(Scopes.SINGLETON);
-        binder.bind(MetastoreValidator.class).asEagerSingleton();
+        configBinder(binder).bindConfig(GlueHiveMetastoreConfig.class);
+        binder.bind(IcebergTableOperationsProvider.class).to(GlueIcebergTableOperationsProvider.class).in(Scopes.SINGLETON);
+        binder.bind(TrinoCatalogFactory.class).to(TrinoGlueCatalogFactory.class).in(Scopes.SINGLETON);
+        newExporter(binder).export(TrinoCatalogFactory.class).withGeneratedName();
     }
 }
