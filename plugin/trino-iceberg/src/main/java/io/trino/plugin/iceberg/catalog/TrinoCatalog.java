@@ -47,7 +47,7 @@ public interface TrinoCatalog
 {
     List<String> listNamespaces(ConnectorSession session);
 
-    boolean dropNamespace(ConnectorSession session, String namespace);
+    void dropNamespace(ConnectorSession session, String namespace);
 
     Map<String, Object> loadNamespaceMetadata(ConnectorSession session, String namespace);
 
@@ -69,7 +69,7 @@ public interface TrinoCatalog
             String location,
             Map<String, String> properties);
 
-    boolean dropTable(ConnectorSession session, SchemaTableName schemaTableName, boolean purgeData);
+    void dropTable(ConnectorSession session, SchemaTableName schemaTableName, boolean purgeData);
 
     void renameTable(ConnectorSession session, SchemaTableName from, SchemaTableName to);
 
