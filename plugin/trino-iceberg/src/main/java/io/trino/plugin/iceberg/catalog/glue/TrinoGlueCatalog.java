@@ -410,7 +410,12 @@ public class TrinoGlueCatalog
                         .getDatabase()
                         .getLocationUri());
 
-        String location;
+        String tableName = schemaTableName.getTableName();
+        if (isUniqueTableLocation) {
+            tableName = tableName + "-" + randomUUID().toString().replace("-", "");
+        }
+
+        Path location;
         if (databaseLocation == null) {
             if (defaultSchemaLocation.isEmpty()) {
                 throw new TrinoException(
@@ -420,16 +425,14 @@ public class TrinoGlueCatalog
                                         "config option.",
                                 schemaTableName.getSchemaName()));
             }
-            location = format("%s/%s.db/%s", defaultSchemaLocation.get(), schemaTableName.getSchemaName(), schemaTableName.getTableName());
+            String schemaDirectoryName = schemaTableName.getSchemaName() + ".db";
+            location = new Path(defaultSchemaLocation.get(), schemaDirectoryName, tableName);
         }
         else {
-            location = format("%s/%s", databaseLocation, schemaTableName.getTableName());
+            location = new Path(databaseLocation, tableName);
         }
 
-        if (isUniqueTableLocation) {
-            location = location + "-" + randomUUID().toString().replace("-", "");
-        }
-        return location;
+        return location.toString();
     }
 
     @Override

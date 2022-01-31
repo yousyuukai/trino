@@ -331,6 +331,7 @@
                         <configuration>
                             <excludes>
                                 <exclude>**/TestIcebergGlueCatalogConnectorSmokeTest.java</exclude>
+                                <exclude>**/TestTrinoGlueCatalog.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
