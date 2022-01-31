@@ -72,9 +72,26 @@ public final class IcebergQueryRunner
             Optional<File> metastoreDirectory)
             throws Exception
     {
+        return createIcebergQueryRunner(
+                extraProperties,
+                connectorProperties,
+                tables,
+                Optional.empty(),
+                metastoreDirectory);
+    }
+
+    public static DistributedQueryRunner createIcebergQueryRunner(
+            Map<String, String> extraProperties,
+            Map<String, String> connectorProperties,
+            Iterable<TpchTable<?>> tables,
+            Optional<String> schemaName,
+            Optional<File> metastoreDirectory)
+            throws Exception
+    {
+        String schema = schemaName.orElse("tpch");
         Session session = testSessionBuilder()
                 .setCatalog(ICEBERG_CATALOG)
-                .setSchema("tpch")
+                .setSchema(schema)
                 .build();
 
         DistributedQueryRunner queryRunner = DistributedQueryRunner.builder(session)
@@ -99,7 +116,7 @@ public final class IcebergQueryRunner
 
         queryRunner.createCatalog(ICEBERG_CATALOG, "iceberg", connectorProperties);
 
-        queryRunner.execute("CREATE SCHEMA tpch");
+        queryRunner.execute("CREATE SCHEMA " + schema);
 
         copyTpchTables(queryRunner, "tpch", TINY_SCHEMA_NAME, session, tables);
 

@@ -95,6 +95,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
         </dependency>
@@ -334,17 +339,12 @@
         </profile>
 
         <profile>
-            <id>test-iceberg-glue</id>
+            <id>test-all</id>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>**/TestIcebergGlueCatalogConnectorSmokeTest.java</include>
-                            </includes>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
