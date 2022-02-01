@@ -428,7 +428,7 @@ public class TrinoGlueCatalog
                                 schemaTableName.getSchemaName()));
             }
             String schemaDirectoryName = schemaTableName.getSchemaName() + ".db";
-            location = new Path(defaultSchemaLocation.get(), schemaDirectoryName, tableName);
+            location = new Path(new Path(defaultSchemaLocation.get(), schemaDirectoryName), tableName);
         }
         else {
             location = new Path(databaseLocation, tableName);
