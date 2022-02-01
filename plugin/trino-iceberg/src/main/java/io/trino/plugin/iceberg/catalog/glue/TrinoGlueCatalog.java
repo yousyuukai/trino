@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static io.trino.plugin.hive.HiveErrorCode.HIVE_DATABASE_LOCATION_ERROR;
@@ -242,23 +243,24 @@ public class TrinoGlueCatalog
                 List<String> namespaces = namespace.map(List::of).orElseGet(() -> listNamespaces(session));
                 return namespaces.stream()
                         .flatMap(glueNamespace -> {
-                            GetTablesRequest getTablesRequest = new GetTablesRequest().withDatabaseName(glueNamespace);
-                            catalogId.ifPresent(getTablesRequest::setCatalogId);
-                            return getPaginatedResults(
-                                    glueClient::getTables,
-                                    getTablesRequest,
-                                    GetTablesRequest::setNextToken,
-                                    GetTablesResult::getNextToken)
-                                    .map(GetTablesResult::getTableList)
-                                    .flatMap(List::stream)
-                                    .map(table -> new SchemaTableName(glueNamespace, table.getName()));
+                            try {
+                                GetTablesRequest getTablesRequest = new GetTablesRequest().withDatabaseName(glueNamespace);
+                                catalogId.ifPresent(getTablesRequest::setCatalogId);
+                                return getPaginatedResults(
+                                        glueClient::getTables,
+                                        getTablesRequest,
+                                        GetTablesRequest::setNextToken,
+                                        GetTablesResult::getNextToken)
+                                        .map(GetTablesResult::getTableList)
+                                        .flatMap(List::stream)
+                                        .map(table -> new SchemaTableName(glueNamespace, table.getName()));
+                            }
+                            catch (EntityNotFoundException e) {
+                                return Stream.empty();
+                            }
                         })
                         .collect(toImmutableList());
             });
-        }
-        catch (EntityNotFoundException e) {
-            // database does not exist
-            return ImmutableList.of();
         }
         catch (AmazonServiceException e) {
             throw new TrinoException(ICEBERG_CATALOG_ERROR, e);
