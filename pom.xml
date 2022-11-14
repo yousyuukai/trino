@@ -152,6 +152,7 @@
         <module>plugin/trino-tpch</module>
         <module>plugin/trino-db2</module>
         <module>plugin/trino-vertica</module>
+        <module>plugin/trino-salesforce</module>
         <module>service/trino-proxy</module>
         <module>service/trino-verifier</module>
         <module>testing/trino-benchmark</module>
