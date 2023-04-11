@@ -202,10 +202,15 @@ public class DB2Client
             case Types.LONGNVARCHAR:
                 return Optional.of(defaultVarcharColumnMapping(typeHandle.getRequiredColumnSize(), false));
 
+            case Types.BLOB:
             case Types.BINARY:
             case Types.VARBINARY:
             case Types.LONGVARBINARY:
                 return Optional.of(varbinaryColumnMapping());
+
+            case Types.CLOB:
+            case Types.OTHER:
+                return mapToUnboundedVarchar(typeHandle);
 
             case Types.DATE:
                 return Optional.of(dateColumnMappingUsingSqlDate());
